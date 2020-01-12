@@ -8,7 +8,7 @@
         ref:当前表单的标识
         label-width：标签的宽度
       -->
-      <el-form :model="loginForm" :rules="rules" ref="ruleForm" class="demo-ruleForm">
+      <el-form :model="loginForm" :rules="rules" ref="loginForm" class="demo-ruleForm">
         <!--
         label:设置标签的文本内容
         prop:设置当前表单元素所需要使用的验证规则，属性名称，prop属性的值和验证规则一般完全一样
@@ -59,17 +59,23 @@ export default {
   },
   methods: {
     // 登录
-    async Login () {
-    //   console.log(111)
-      let res = await login(this.loginForm)
-      //   console.log(res)
-      if (res.data.message === '登录成功') {
-        localStorage.setItem('token', res.data.data.token)
-        // this.$message.success(res.data.message)
-        this.$router.push({ name: 'index' })
-      } else {
-        this.$message.error(res.data.message)
-      }
+    Login () {
+      this.$refs.loginForm.validate(async valid => {
+        if (valid) {
+          let res = await login(this.loginForm)
+          //   console.log(res)
+          if (res.data.message === '登录成功') {
+            localStorage.setItem('token', res.data.data.token)
+            // this.$message.success(res.data.message)
+            this.$router.push({ name: 'index' })
+          } else {
+            this.$message.error(res.data.message)
+          }
+        } else {
+          this.$message.error('数据填写不合法')
+        }
+      })
+      //   console.log(111)
     }
   }
 }
