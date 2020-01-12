@@ -23,7 +23,7 @@
           <el-input v-model="loginForm.password" placeholder="请输入密码" prefix-icon='icon-key'></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" class="login-btn">登录</el-button>
+          <el-button type="primary" class="login-btn" @click="Login">登录</el-button>
         </el-form-item>
       </el-form>
 
@@ -33,12 +33,13 @@
 </template>
 
 <script>
+import { login } from '@/apis/user'
 export default {
   data () {
     return {
       loginForm: {
-        username: '',
-        password: ''
+        username: '12345',
+        password: '123'
       },
       rules: {
         username: [
@@ -53,6 +54,21 @@ export default {
           { min: 3, max: 16, message: '长度在3到16位密码', trigger: 'blur' }
           //
         ]
+      }
+    }
+  },
+  methods: {
+    // 登录
+    async Login () {
+    //   console.log(111)
+      let res = await login(this.loginForm)
+      //   console.log(res)
+      if (res.data.message === '登录成功') {
+        localStorage.setItem('token', res.data.data.token)
+        // this.$message.success(res.data.message)
+        this.$router.push({ name: 'index' })
+      } else {
+        this.$message.error(res.data.message)
       }
     }
   }

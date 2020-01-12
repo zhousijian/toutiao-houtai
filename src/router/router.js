@@ -5,7 +5,8 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 
 // 引入路由所需要映射的文件
-import Login from '@/views/login.vue'
+import Login from '@/views/login.vue' // 登录页面
+import Index from '@/views/index.vue' // 首页
 
 // 挂载，让VueRouter管理路由
 Vue.use(VueRouter)
@@ -18,8 +19,28 @@ let router = new VueRouter({
       name: 'login',
       path: '/login',
       component: Login
+    },
+    {
+      name: 'index',
+      path: '/index',
+      component: Index
     }
   ]
+})
+
+// 设置导航守卫
+router.beforeEach((to, from, next) => {
+//   console.log(to)
+  if (to.path === '/login') {
+    next()
+  } else {
+    let token = localStorage.getItem('token')
+    if (token) {
+      next()
+    } else {
+      next({ name: 'login' })
+    }
+  }
 })
 
 // 暴露
