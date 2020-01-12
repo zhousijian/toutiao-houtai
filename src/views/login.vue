@@ -73,6 +73,7 @@ export default {
           }
         } else {
           this.$message.error('数据填写不合法')
+          return false
         }
       })
       //   console.log(111)
