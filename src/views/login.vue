@@ -20,7 +20,7 @@
         </el-form-item>
         <!-- 密码框 -->
         <el-form-item prop="password">
-          <el-input v-model="loginForm.password" placeholder="请输入密码" prefix-icon='icon-key'></el-input>
+          <el-input v-model="loginForm.password" placeholder="请输入密码" prefix-icon='icon-key' @keyup.enter.native='Login'></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" class="login-btn" @click="Login">登录</el-button>
