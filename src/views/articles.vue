@@ -32,6 +32,15 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="pageIndex"
+      :page-sizes="[2, 4, 6, 8]"
+      :page-size="pageSize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total">
+    </el-pagination>
   </div>
 </template>
 
@@ -41,20 +50,43 @@ import { dateFormat } from '@/filters/myfilters'
 export default {
   data () {
     return {
-      articleList: []
+      articleList: [],
+      pageIndex: 1,
+      pageSize: 2,
+      total: 10
     }
   },
   filters: {
     dateFormat
   },
-  async mounted () {
-    let res = await articlelist()
-    // console.log(res)
-    this.articleList = res.data.data
+  mounted () {
+    this.init()
+    // let res = await articlelist({ pageIndex: this.pageIndex, pageSize: this.pageSize })
+    // // console.log(res)
+    // this.articleList = res.data.data
   },
   methods: {
+
+    // 封装
+    async init () {
+      let res = await articlelist({ pageIndex: this.pageIndex, pageSize: this.pageSize })
+      // console.log(res)
+      this.articleList = res.data.data
+      this.total = res.data.total
+    },
+
     edit (index, row) {
       console.log(index, row)
+    },
+    handleSizeChange (val) {
+      // console.log(`每页 ${val} 条`)
+      this.pageSize = val
+      this.init()
+    },
+    handleCurrentChange (val) {
+      // console.log(`当前页: ${val}`)
+      this.pageIndex = val
+      this.init()
     }
   }
 }

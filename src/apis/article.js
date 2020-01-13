@@ -1,7 +1,8 @@
 import axios from '@/utils/myaxios'
 
-export const articlelist = () => {
+export const articlelist = (params) => {
   return axios({
-    url: '/post'
+    url: '/post',
+    params
   })
 }
