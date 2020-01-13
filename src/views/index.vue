@@ -26,7 +26,7 @@
             </template>
             <el-menu-item-group>
               <el-menu-item index="/index/articles" class="el-icon-reading">&nbsp;文章列表</el-menu-item>
-              <el-menu-item index="2-2" class="el-icon-document-add">&nbsp;文章发布</el-menu-item>
+              <el-menu-item index="/index/articleFB" class="el-icon-document-add">&nbsp;文章发布</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
           <el-submenu index="3">
