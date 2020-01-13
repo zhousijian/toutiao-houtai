@@ -45,7 +45,7 @@
           <!-- upload文件上传 -->
           <el-upload
             class="upload-demo"
-            action="https://jsonplaceholder.typicode.com/posts/"
+            action="http://localhost:3000/upload"
             v-if="myarticle.type==2"
           >
             <el-button size="small" type="primary">点击上传</el-button>
@@ -79,7 +79,7 @@
 
         <!-- 照片墙 -->
         <el-form-item label="封面：">
-          <el-upload action="https://jsonplaceholder.typicode.com/posts/" list-type="picture-card">
+          <el-upload action="http://localhost:3000/upload" list-type="picture-card" :headers="getToken()" :on-success="sccg" :on-remove="yccg">
             <i class="el-icon-plus"></i>
           </el-upload>
         </el-form-item>
@@ -99,6 +99,7 @@ import VueEditor from 'vue-word-editor'
 import 'quill/dist/quill.snow.css'
 //
 import { catelist } from '../apis/category'
+import { articleFB } from '../apis/article'
 export default {
   data () {
     return {
@@ -153,6 +154,24 @@ export default {
     this.cateList = res.data.data.splice(2)
   },
   methods: {
+
+    // 图片上传成功的回调
+    sccg (response) {
+      console.log(response)
+      if (response.message === '文件上传成功') {
+        this.myarticle.cover.push(response.data.id)
+      }
+    },
+
+    // 图片删除的回调
+    yccg (file, fileList) {
+    //   console.log(file)
+    //   console.log(fileList)
+      this.myarticle.cover = fileList.map(value => {
+        return value.response.data.id
+      })
+    },
+
     // 获取token设置
     getToken () {
       let token = localStorage.getItem('tokenht')
@@ -160,21 +179,44 @@ export default {
     },
 
     handleCheckAllChange (val) {
-      //   this.checkedCities = val ? cityOptions : []
-      //   this.isIndeterminate = false
+    //   console.log(val)
+
+      this.myarticle.categories = val ? this.cateList.map(value => {
+        return value.id
+      }) : []
+      //   console.log(this.myarticle.categories)
+
+      this.isIndeterminate = false
     },
     handleCheckedCitiesChange (value) {
-      //   let checkedCount = value.length
-      //   this.checkAll = checkedCount === this.cities.length
-      //   this.isIndeterminate =
-      //     checkedCount > 0 && checkedCount < this.cities.length
+    //   console.log(value)
+
+      let checkedCount = value.length
+      this.checkAll = checkedCount === this.cateList.length
+      this.isIndeterminate =
+          checkedCount > 0 && checkedCount < this.cateList.length
     },
-    FBarticle () {
+    async FBarticle () {
       // eslint-disable-next-line eqeqeq
       if (this.myarticle.type == 1) {
         this.myarticle.content = this.$refs.fuwenben.editor.root.innerHTML
       }
-      console.log(this.myarticle)
+
+      this.myarticle.categories = this.myarticle.categories.map(value => {
+        return { id: value }
+      })
+      this.myarticle.cover = this.myarticle.cover.map(value => {
+        return { id: value }
+      })
+
+      //   console.log(this.myarticle)
+
+      let res = await articleFB(this.myarticle)
+      console.log(res)
+    //   if (res.data.message === '文章发布成功') {
+    //     this.$message.success(res.data.message)
+    //     this.$router.push({ name: 'articles' })
+    //   }
     }
   }
 }
