@@ -14,6 +14,7 @@
         <el-form-item label="标题：">
           <el-input v-model="myarticle.title"></el-input>
         </el-form-item>
+
         <!-- 单选框 -->
         <!-- 单选按钮组
         label：当用户选择某个单选按钮的时候，会获取到这个label值，它相当于这个单选按钮的实际值
@@ -25,10 +26,11 @@
             <el-radio :label="2">视频</el-radio>
           </el-radio-group>
         </el-form-item>
+
         <!-- 富文本框和upload文件上传 -->
         <el-form-item label="内容：">
           <!-- 富文本 -->
-          <VueEditor :config="config" v-if="myarticle.type==1" />
+          <VueEditor :config="config" v-if="myarticle.type==1" ref="fuwenben" />
           <!-- upload点击文件上传 -->
           <!-- class="upload-demo"// 样式
            action="https://jsonplaceholder.typicode.com/posts/"// 处理文件上传的服务器路径
@@ -40,6 +42,7 @@
            :on-exceed="handleExceed"// 超出数量限制时所触发的事件
            :file-list="fileList"// 当前用户所选择文件列表
           -->
+          <!-- upload文件上传 -->
           <el-upload
             class="upload-demo"
             action="https://jsonplaceholder.typicode.com/posts/"
@@ -50,9 +53,40 @@
           </el-upload>
         </el-form-item>
 
+        <!-- indeterminate 复选框组 -->
+        <!-- 1.el-checkbox的常见属性和事件
+         :indeterminate="isIndeterminate":说明当前没有全选也没有全不选
+         v-model="checkAll"：标记是否是全选状态，值为true/false
+         @change="handleCheckAllChange":切换全选和全不选状态
+         ----------------------------------------
+         2.el-checkbox-group的常见属性和事件
+         v-model="数组"：包含着默认选中的复选框数据，这个数据是当前复选框所代表的实际值
+         @change="handleCheckedCitiesChange"：单击复选框组中的某个复选框所触发的事件
+        :label="实际值"：这是复选框组中单个复选框的属性，它代表当前复选框的实际值，并且：
+        当这个复选框被选中之后，它的label值会自动的添加到当前复选框组v-model所绑定的数组中
+        -->
+        <el-form-item label="栏目：">
+          <el-checkbox
+            :indeterminate="isIndeterminate"
+            v-model="checkAll"
+            @change="handleCheckAllChange"
+          >全选</el-checkbox>
+          <div style="margin: 15px 0;"></div>
+          <el-checkbox-group v-model="myarticle.categories" @change="handleCheckedCitiesChange">
+            <el-checkbox v-for="(v,i) in cateList" :label="v.id" :key="i">{{v.name}}</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+
+        <!-- 照片墙 -->
+        <el-form-item label="封面：">
+          <el-upload action="https://jsonplaceholder.typicode.com/posts/" list-type="picture-card">
+            <i class="el-icon-plus"></i>
+          </el-upload>
+        </el-form-item>
+
         <!-- 按钮 -->
         <el-form-item>
-          <el-button type="primary">立即创建</el-button>
+          <el-button type="primary" @click="FBarticle">发布文章</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -63,31 +97,45 @@
 // 引入富文本，下面两个
 import VueEditor from 'vue-word-editor'
 import 'quill/dist/quill.snow.css'
+//
+import { catelist } from '../apis/category'
 export default {
   data () {
     return {
       myarticle: {
+        // 下面五个是发布文章需要的数据
         title: '',
         content: '',
         categories: [],
         cover: [],
         type: 1
       },
+      checkAll: false,
+      isIndeterminate: false,
+      cateList: [],
       config: {
         // 上传图片的配置
         uploadImage: {
+          // 指定处理文件上传的服务器的接口址
           url: 'http://localhost:3000/upload',
+          // 后台所需要的参数的名称
           name: 'file',
+          // 传递token
+          headers: this.getToken(),
           // res是结果，insert方法会把内容注入到编辑器中，res.data.url是资源地址
           uploadSuccess (res, insert) {
-            insert('http://localhost:3000' + res.data.url)
+            insert('http://localhost:3000' + res.data.data.url)
           }
         },
 
         // 上传视频的配置
         uploadVideo: {
+          // 指定处理文件上传的服务器的接口址
           url: 'http://localhost:3000/upload',
+          // 后台所需要的参数的名称
           name: 'file',
+          // 传递token
+          headers: this.getToken(),
           uploadSuccess (res, insert) {
             insert('http://localhost:3000' + res.data.url)
           }
@@ -98,6 +146,36 @@ export default {
   components: {
     // 注册富文本
     VueEditor
+  },
+  async mounted () {
+    let res = await catelist()
+    // console.log(res)
+    this.cateList = res.data.data.splice(2)
+  },
+  methods: {
+    // 获取token设置
+    getToken () {
+      let token = localStorage.getItem('tokenht')
+      return { Authorization: token }
+    },
+
+    handleCheckAllChange (val) {
+      //   this.checkedCities = val ? cityOptions : []
+      //   this.isIndeterminate = false
+    },
+    handleCheckedCitiesChange (value) {
+      //   let checkedCount = value.length
+      //   this.checkAll = checkedCount === this.cities.length
+      //   this.isIndeterminate =
+      //     checkedCount > 0 && checkedCount < this.cities.length
+    },
+    FBarticle () {
+      // eslint-disable-next-line eqeqeq
+      if (this.myarticle.type == 1) {
+        this.myarticle.content = this.$refs.fuwenben.editor.root.innerHTML
+      }
+      console.log(this.myarticle)
+    }
   }
 }
 </script>

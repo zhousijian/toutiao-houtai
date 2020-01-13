@@ -65,7 +65,7 @@ export default {
           let res = await login(this.loginForm)
           //   console.log(res)
           if (res.data.message === '登录成功') {
-            localStorage.setItem('token', res.data.data.token)
+            localStorage.setItem('tokenht', res.data.data.token)
             // this.$message.success(res.data.message)
             this.$router.push({ name: 'index' })
           } else {
