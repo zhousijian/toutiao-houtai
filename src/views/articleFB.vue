@@ -46,6 +46,8 @@
           <el-upload
             class="upload-demo"
             action="http://localhost:3000/upload"
+            :headers="getToken()"
+            :on-success="uploadvideosuccess"
             v-if="myarticle.type==2"
           >
             <el-button size="small" type="primary">点击上传</el-button>
@@ -155,6 +157,14 @@ export default {
   },
   methods: {
 
+    // 内容文件上传中的视频上传成功的回调
+    uploadvideosuccess (response) {
+      // console.log(response)
+      if (response.message === '文件上传成功') {
+        this.myarticle.content = 'http://127.0.0.1:3000' + response.data.url
+      }
+    },
+
     // 图片上传成功的回调
     sccg (response) {
       console.log(response)
@@ -212,11 +222,11 @@ export default {
       //   console.log(this.myarticle)
 
       let res = await articleFB(this.myarticle)
-      console.log(res)
-    //   if (res.data.message === '文章发布成功') {
-    //     this.$message.success(res.data.message)
-    //     this.$router.push({ name: 'articles' })
-    //   }
+      // console.log(res)
+      if (res.data.message === '文章发布成功') {
+        this.$message.success(res.data.message)
+        this.$router.push({ name: 'articles' })
+      }
     }
   }
 }
