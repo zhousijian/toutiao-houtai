@@ -81,14 +81,21 @@
 
         <!-- 照片墙 -->
         <el-form-item label="封面：">
-          <el-upload action="http://localhost:3000/upload" list-type="picture-card" :headers="getToken()" :on-success="sccg" :on-remove="yccg">
+          <el-upload
+            action="http://localhost:3000/upload"
+            list-type="picture-card"
+            :headers="getToken()"
+            :on-success="sccg"
+            :on-remove="yccg"
+            :file-list="myarticle.cover"
+          >
             <i class="el-icon-plus"></i>
           </el-upload>
         </el-form-item>
 
         <!-- 按钮 -->
         <el-form-item>
-          <el-button type="primary" @click="FBarticle">发布文章</el-button>
+          <el-button type="primary" @click="FBarticle">{{btntext}}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -99,12 +106,16 @@
 // 引入富文本，下面两个
 import VueEditor from 'vue-word-editor'
 import 'quill/dist/quill.snow.css'
-//
+// 栏目列表
 import { catelist } from '../apis/category'
-import { articleFB } from '../apis/article'
+// 发布文章,文章详情，文章编辑
+// eslint-disable-next-line no-unused-vars
+import { articleFB, articlexq, editarticle } from '../apis/article'
 export default {
   data () {
     return {
+      newImg: [],
+      btntext: '发布文章',
       myarticle: {
         // 下面五个是发布文章需要的数据
         title: '',
@@ -151,12 +162,49 @@ export default {
     VueEditor
   },
   async mounted () {
+    let id = this.$route.params.id
+    // console.log(id)
+    if (id) {
+      this.btntext = '编辑文章'
+      // 获取文章详情
+      let res2 = await articlexq(id)
+      console.log(res2)
+      this.myarticle = res2.data.data
+      // eslint-disable-next-line eqeqeq
+      if (this.myarticle.type == 1) {
+        this.$refs.fuwenben.editor.clipboard.dangerouslyPasteHTML(
+          0,
+          this.myarticle.content
+        )
+      }
+      this.myarticle.categories = this.myarticle.categories.map(value => {
+        return value.id
+      })
+
+      // 处理图片方法一
+      this.myarticle.cover = this.myarticle.cover.map(value => {
+        if (value.url.indexOf('http') === -1) {
+          value.url = 'http://127.0.0.1:3000' + value.url
+        }
+        return { url: value.url }
+      })
+      // console.log(this.myarticle)
+
+      // 处理封面方法二
+      // this.myarticle.cover.forEach(value => {
+      //   if (value.url.indexOf('http') === -1) {
+      //     value.url = 'http://127.0.0.1:3000' + value.url
+      //   }
+      // })
+      // console.log(this.myarticle)
+    }
+
+    // 栏目列表
     let res = await catelist()
     // console.log(res)
     this.cateList = res.data.data.splice(2)
   },
   methods: {
-
     // 内容文件上传中的视频上传成功的回调
     uploadvideosuccess (response) {
       // console.log(response)
@@ -169,14 +217,20 @@ export default {
     sccg (response) {
       console.log(response)
       if (response.message === '文件上传成功') {
-        this.myarticle.cover.push(response.data.id)
+        if (this.$route.params.id) {
+          this.newImg.push(response.data.id)
+        } else {
+          this.myarticle.cover.push(response.data.id)
+        }
       }
+      console.log(response.data.id)
+      console.log(this.myarticle.cover)
     },
 
     // 图片删除的回调
     yccg (file, fileList) {
-    //   console.log(file)
-    //   console.log(fileList)
+      //   console.log(file)
+      //   console.log(fileList)
       this.myarticle.cover = fileList.map(value => {
         return value.response.data.id
       })
@@ -189,22 +243,24 @@ export default {
     },
 
     handleCheckAllChange (val) {
-    //   console.log(val)
+      //   console.log(val)
 
-      this.myarticle.categories = val ? this.cateList.map(value => {
-        return value.id
-      }) : []
+      this.myarticle.categories = val
+        ? this.cateList.map(value => {
+          return value.id
+        })
+        : []
       //   console.log(this.myarticle.categories)
 
       this.isIndeterminate = false
     },
     handleCheckedCitiesChange (value) {
-    //   console.log(value)
+      //   console.log(value)
 
       let checkedCount = value.length
       this.checkAll = checkedCount === this.cateList.length
       this.isIndeterminate =
-          checkedCount > 0 && checkedCount < this.cateList.length
+        checkedCount > 0 && checkedCount < this.cateList.length
     },
     async FBarticle () {
       // eslint-disable-next-line eqeqeq
@@ -215,17 +271,47 @@ export default {
       this.myarticle.categories = this.myarticle.categories.map(value => {
         return { id: value }
       })
-      this.myarticle.cover = this.myarticle.cover.map(value => {
-        return { id: value }
-      })
+      console.log(this.myarticle)
 
-      //   console.log(this.myarticle)
+      if (this.$route.params.id) {
+        console.log(123)
 
-      let res = await articleFB(this.myarticle)
-      // console.log(res)
-      if (res.data.message === '文章发布成功') {
-        this.$message.success(res.data.message)
-        this.$router.push({ name: 'articles' })
+        this.newImg = this.newImg.map(value => {
+          return { id: value }
+        })
+        this.myarticle.cover.push(...this.newImg)
+      } else {
+        this.myarticle.cover = this.myarticle.cover.map(value => {
+          console.log(value)
+          return { id: value }
+        })
+      }
+
+      console.log(this.myarticle.cover)
+
+      // this.myarticle.cover.splice(1, 1)
+
+      // console.log(this.myarticle)
+      let id = this.$route.params.id
+      // console.log(id)
+      if (id) {
+        console.log(this.myarticle)
+        // let res = await editarticle(id, this.myarticle)
+        // this.$message.success(res.data.message)
+        // this.$router.push({ name: 'articles' })
+        // console.log(res)
+      } else {
+        console.log(this.myarticle)
+        // this.myarticle.cover = this.myarticle.cover.map(value => {
+        //   return { id: value }
+        // })
+
+        // let res = await articleFB(this.myarticle)
+        // // console.log(res)
+        // if (res.data.message === '文章发布成功') {
+        //   this.$message.success(res.data.message)
+        //   this.$router.push({ name: 'articles' })
+        // }
       }
     }
   }

@@ -16,3 +16,19 @@ export const articleFB = (data) => {
     data
   })
 }
+
+// 文章详情
+export const articlexq = (id) => {
+  return axios({
+    url: `/post/${id}`
+  })
+}
+
+// 编辑文章
+export const editarticle = (id, data) => {
+  return axios({
+    method: 'post',
+    url: `/post_update/${id}`,
+    data
+  })
+}

@@ -42,7 +42,7 @@ let router = new VueRouter({
         },
         {
           name: 'articleFB',
-          path: 'articleFB',
+          path: 'articleFB/:id?',
           component: ArticleFB
         }
       ]
